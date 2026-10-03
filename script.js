@@ -73,7 +73,7 @@ function draw() {
       ctx.fill();
     }
   }
-
+  drawSparks(performance.now());
   // The closest vector: a line from the cursor to its nearest lattice point
   if (closest) {
     ctx.strokeStyle = "rgba(" + tint + ", 0.9)";
@@ -103,6 +103,75 @@ document.documentElement.addEventListener("pointerleave", function () {
 
 window.addEventListener("resize", resize);
 
+// ---- Short vectors that appear on their own ----
+const sparkLife = 2600; // how long each one lasts, in milliseconds
+const sparkGap = 1300;  // time between new ones, in milliseconds
+
+// The six shortest steps from any lattice point to a neighbour
+const neighbours = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]];
+
+let sparks = [];
+let lastSpark = 0;
+
+// Turn lattice coordinates (a, b) into a position on screen
+function latticePoint(a, b) {
+  return { x: a * spacing + b * skew, y: b * rowHeight };
+}
+
+// Pick a random lattice point on screen and one of its neighbours
+function addSpark(now) {
+  const b = Math.floor(Math.random() * (height / rowHeight));
+  const a = Math.round((Math.random() * width - b * skew) / spacing);
+  const step = neighbours[Math.floor(Math.random() * neighbours.length)];
+
+  sparks.push({
+    from: latticePoint(a, b),
+    to: latticePoint(a + step[0], b + step[1]),
+    born: now
+  });
+}
+
+function drawSparks(now) {
+  sparks.forEach(function (spark) {
+    const age = (now - spark.born) / sparkLife;   // 0 = just born, 1 = finished
+    const grow = Math.min(1, age / 0.35);         // the line extends first...
+    const fade = age < 0.35 ? 1 : Math.max(0, 1 - (age - 0.35) / 0.65); // ...then fades
+
+    const endX = spark.from.x + (spark.to.x - spark.from.x) * grow;
+    const endY = spark.from.y + (spark.to.y - spark.from.y) * grow;
+    const colour = "rgba(" + tint + ", " + (0.75 * fade) + ")";
+
+    ctx.strokeStyle = colour;
+    ctx.fillStyle = colour;
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.moveTo(spark.from.x, spark.from.y);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(spark.from.x, spark.from.y, 2.5, 0, Math.PI * 2);
+    ctx.arc(endX, endY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// Runs once per screen refresh: adds new sparks, removes finished ones, redraws
+function animate(now) {
+  if (now - lastSpark > sparkGap) {
+    addSpark(now);
+    lastSpark = now;
+  }
+
+  sparks = sparks.filter(function (spark) {
+    return now - spark.born < sparkLife;
+  });
+
+  draw();
+  requestAnimationFrame(animate);
+}
+
 // ---- Take on a project's colour while its card is hovered or focused ----
 document.querySelectorAll(".project").forEach(function (card) {
   const cardTint = getComputedStyle(card).getPropertyValue("--tint").trim();
@@ -124,3 +193,8 @@ document.querySelectorAll(".project").forEach(function (card) {
 });
 
 resize();
+
+// Start the ambient animation, unless the visitor has turned animations off
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  requestAnimationFrame(animate);
+}
