@@ -13,7 +13,8 @@ const skew = 21;       // how far each row is shifted sideways from the one abov
 const reach = 190;     // how far the cursor's glow extends
 
 const restColour = "rgba(163, 169, 207, 0.16)"; // points the cursor isn't near
-const defaultTint = "247, 193, 214";            // baby pink, as red, green, blue
+// The page's own colour: pink on the homepage, the project's colour on its page
+const defaultTint = getComputedStyle(document.body).getPropertyValue("--tint").trim();
 
 // ---- State that changes while the page is open ----
 let tint = defaultTint; // current highlight colour
@@ -150,9 +151,20 @@ function drawSparks(now) {
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
+    // A dot at the tail
     ctx.beginPath();
     ctx.arc(spark.from.x, spark.from.y, 2.5, 0, Math.PI * 2);
-    ctx.arc(endX, endY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // An arrowhead at the tip, pointing along the vector
+    const angle = Math.atan2(spark.to.y - spark.from.y, spark.to.x - spark.from.x);
+    const head = 9; // arrowhead length in pixels
+
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - head * Math.cos(angle - 0.45), endY - head * Math.sin(angle - 0.45));
+    ctx.lineTo(endX - head * Math.cos(angle + 0.45), endY - head * Math.sin(angle + 0.45));
+    ctx.closePath();
     ctx.fill();
   });
 }
