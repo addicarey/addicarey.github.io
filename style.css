@@ -1,7 +1,7 @@
 /* ---------- 1. Colours and fonts, defined once ---------- */
 
 :root {
-  --ink: #0d1330;      /* page background: deep navy */
+  --ink: #090919;      /* page background: deep navy */
   --rule: #2a3266;     /* thin divider lines */
   --text: #eef0fa;     /* main text */
   --muted: #a3a9cf;    /* secondary text */
