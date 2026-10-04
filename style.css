@@ -128,6 +128,50 @@ h1 {
   line-height: 1.5;
 }
 
+/* The name links to the About page and shows a hint on hover */
+.name {
+  position: relative;
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--text);
+}
+
+.name::after {
+  content: attr(data-hint);
+  position: absolute;
+  left: 0.25rem;
+  bottom: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--pink);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.name:hover::after,
+.name:focus-visible::after {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .name::after {
+    transition: none;
+  }
+}
+
 /* ---------- 5. Sections ---------- */
 
 #projects, #awards, #contact {
